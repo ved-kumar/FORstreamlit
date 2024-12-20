@@ -201,7 +201,19 @@ elif app_mode == "Resource-wise Analytics":
         df['Resource Name'] = df['Resource Name'].replace(replace_dict)
 
         # Convert Date column to datetime
-        df['Date'] = pd.to_datetime(df['Date'])
+
+        if not df.empty:
+            # Clean and convert Date column with error handling
+            def safe_date_conversion(date_series):
+                try:
+                    return pd.to_datetime(date_series, errors='coerce')
+                except Exception as e:
+                    st.warning(f"Some dates could not be parsed. They will be treated as missing values.")
+                    return pd.to_datetime(date_series, errors='coerce')
+
+            df['Date'] = safe_date_conversion(df['Date'])
+            # Remove rows where Date is NaT (Not a Time)
+            df = df.dropna(subset=['Date'])
 
         # First select person
         selected_person = st.selectbox(
